@@ -26,7 +26,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $trafics = DomainTrafic::orderBy('id' , 'DESC')->get();
+        
+        $trafics = DomainTrafic::orderBy('j_created_at' , 'DESC')->get();
         return view('home' , compact("trafics"));
 
     }
@@ -42,7 +43,7 @@ class HomeController extends Controller
         //set the column names
         $cells[] = ["id","Server","User","Name","Size","TodayBw","Date"];
         //pass all the form values
-        foreach (DomainTrafic::orderBy('id' , 'DESC')->get() as $value) {
+        foreach (DomainTrafic::orderBy('j_created_at' , 'DESC')->get() as $value) {
             $cells[] = [$value->id , $value->Server , $value->User , $value->Name, $value->Size, $value->TodayBwDicresed, $value->j_created_at];
         }
 

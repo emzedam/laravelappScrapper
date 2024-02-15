@@ -3,9 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Symfony\Component\BrowserKit\HttpBrowser;
-use Illuminate\Support\Facades\DB;
 use App\Models\DomainTrafic;
+use Symfony\Component\BrowserKit\HttpBrowser;
+use Symfony\Component\HttpClient\HttpClient;
+use App\Models\User;
 
 class doScrap extends Command
 {
@@ -29,7 +30,8 @@ class doScrap extends Command
     public function handle()
     {
         $this->info("Start Scrap Data...");
-        $client = new HttpBrowser();
+
+        $client = new HttpBrowser(HttpClient::create());
 
         $crawler = $client->request('GET', 'https://stat2.dlhost.top/login');
         $form = $crawler->selectButton('Login')->form();
@@ -62,8 +64,9 @@ class doScrap extends Command
 
         // in this part dicrease -40% from todayBw item each of record
         foreach ($final_array as $key => $final_data) {
-            $fourtyPercent = (float)((float)explode(" ",$final_data["TodayBW"])[0] * 40) / 100;
-            $final_data["TodayBwDicresed"] = (string)((float)explode(" ",$final_data["TodayBW"])[0] - $fourtyPercent)." "."TB";
+            $thirtyPercent = (float)(((float)explode(" ",$final_data["TodayBW"])[0] * 30) / 100);
+            $final_data["id"] = $final_data["id"].rand(9,99);
+            $final_data["TodayBwDicresed"] = (string)((float)explode(" ",$final_data["TodayBW"])[0] - $thirtyPercent)." "."TB";
             $final_data["g_created_at"] = (string)verta()->formatGregorian('Y-n-j');
             $final_data["j_created_at"] = (string)verta()->formatDate();
             $final_array[$key] = $final_data;
@@ -74,7 +77,7 @@ class doScrap extends Command
             foreach ($final_array as $value) {
                 DomainTrafic::create($value);
             }
-        }else {
+        } else {
             foreach (DomainTrafic::all() as $trafic) {
                 // if exist record in table and check which records g-created-at field match with today date
                 if(verta($trafic->g_created_at)->diffDays() == 0){
@@ -88,5 +91,8 @@ class doScrap extends Command
         }
 
         $this->info("Ended Scrap Data.");
+        return true;
+
     }
+
 }
